@@ -6,19 +6,44 @@ enum Choice {
     Scissors
 }
 
+enum Result {
+    Lose,
+    Draw,
+    Win,
+}
+
 struct Hand {
     choice: Choice
+}
+
+struct Round {
+    result: Result
 }
 
 fn makeHand(input_string: &str) -> Hand {
     if input_string == "A" || input_string == "X" {
         return Hand{choice: Choice::Rock};
     }
-    else if input_string == "B" || input_string == "Y" {
+    else if input_string == "B" || input_string == "Y"  {
         return Hand{choice: Choice::Paper};
     }
-    else if input_string == "C" || input_string == "Z" {
+    else if input_string == "C" || input_string == "Z"  {
         return Hand{choice: Choice::Scissors};
+    }
+    else {
+        panic!("Uh oh!");
+    }
+}
+
+fn makeRound(input_string: &str) -> Round {
+    if input_string == "X" {
+        return Round{result: Result::Lose};
+    }
+    else if input_string == "Y" {
+        return Round{result: Result::Draw};
+    }
+    else if input_string == "Z" {
+        return Round{result: Result::Win};
     }
     else {
         panic!("Uh oh!");
@@ -45,6 +70,26 @@ fn getScore(hand1: Hand, hand2: Hand) -> i32 {
     }
 }
 
+fn getScorePart2(hand: Hand, round: Round) -> i32 {
+    match hand.choice {
+        Choice::Rock => match round.result {
+            Result::Lose => getScore(hand, Hand{choice: Choice::Scissors}),
+            Result::Draw => getScore(hand, Hand{choice: Choice::Rock}),
+            Result::Win => getScore(hand, Hand{choice: Choice::Paper}),
+        },
+        Choice::Paper => match round.result {
+            Result::Lose => getScore(hand, Hand{choice: Choice::Rock}),
+            Result::Draw => getScore(hand, Hand{choice: Choice::Paper}),
+            Result::Win => getScore(hand, Hand{choice: Choice::Scissors}),
+        },
+        Choice::Scissors => match round.result {
+            Result::Lose => getScore(hand, Hand{choice: Choice::Paper}),
+            Result::Draw => getScore(hand, Hand{choice: Choice::Scissors}),
+            Result::Win => getScore(hand, Hand{choice: Choice::Rock}),
+        },
+    }
+}
+
 fn part1() {
     let file_path = "src/input.txt";
     println!("In file {}", file_path);
@@ -58,6 +103,26 @@ fn part1() {
         let hand1 = makeHand(strings[0]);
         let hand2 = makeHand(strings[1]);
         sum += getScore(hand1, hand2);
+    }
+    println!("{}", sum)
+}
+
+fn part2() {
+    // X = lose
+    // Y = tie
+    // Z = win
+    let file_path = "src/input.txt";
+    println!("In file {}", file_path);
+
+    let contents = fs::read_to_string(file_path)
+        .expect("Should have been able to read the file");
+    let list = contents.split("\n");
+    let mut sum = 0;
+    for item in list {
+        let strings = item.split(" ").collect::<Vec<&str>>();
+        let hand1 = makeHand(strings[0]);
+        let hand2 = makeRound(strings[1]);
+        sum += getScorePart2(hand1, hand2);
     }
     println!("{}", sum)
 }
@@ -83,6 +148,7 @@ fn main() {
     // etc.
 
     part1();
+    part2();
 }
 
 
